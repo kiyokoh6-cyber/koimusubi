@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ゆいか</title>
+
+<style>
+:root {
+  --bg: #fdf6f0;
+  --bubble-user: #6c8ae4;
+  --bubble-char: #ffffff;
+  --accent: #e88ba0;
+  --text-dark: #3a3a3a;
+  --border: #e8d9d0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #ddd;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+    "Yu Gothic", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+#phone {
+  width: 100%;
+  max-width: 430px;
+  background: var(--bg);
+  color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.25);
+}
+
+header {
+  padding: 14px 16px 10px;
+  background: linear-gradient(135deg, var(--accent), #f2a9b8);
+  color: white;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+#boardTabs {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.board-tab {
+  padding: 5px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: transparent;
+  color: white;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.board-tab.active {
+  background: white;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.board-tab.locked {
+  opacity: 0.45;
+  cursor: default;
+}
+
+#boardLabel {
+  margin: 8px 0 0;
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+#setup {
+  padding: 14px 16px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#setup label {
+  font-size: 12px;
+  color: #777;
+}
+
+#setup input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+#setup .row {
+  display: flex;
+  gap: 8px;
+}
+
+#setup .row > div {
+  flex: 1;
+}
+
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bubble {
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.charRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 88%;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.char {
+  background: var(--bubble-char);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.user {
+  align-self: flex-end;
+  max-width: 78%;
+  background: var(--bubble-user);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.system-note {
+  align-self: center;
+  font-size: 11px;
+  color: #999;
+  background: #eee;
+  padding: 4px 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.loading {
+  align-self: flex-start;
+  font-size: 13px;
+  color: #999;
+  padding: 4px 14px;
+}
+
+#inputBar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid var(--border);
+}
+
+#userInput {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 14px;
+  resize: none;
+}
+
+#userInput:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+#sendBtn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0 20px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#sendBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#nextStepArea {
+  text-align: center;
+}
+
+#nextStepArea button {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#manualNextArea {
+  text-align: center;
+  padding: 5px 0;
+}
+
+#manualNextArea button {
+  padding: 7px 16px;
+  background: white;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.reset-button {
+  font-size: 11px;
+  color: #999;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 12px;
+}
+
+#toggleCard {
+  font-size: 11px;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  align-self: flex-start;
+}
+
+#cardPreview {
+  display: none;
+  font-size: 11px;
+  color: #888;
+  background: #f7f2ee;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  max-height: 140px;
+  overflow-y: auto;
+}
+</style>
+</head>
+
+<body>
+
+<div id="phone">
+
+<header>
+  <h1>ゆいか</h1>
+  <div id="boardTabs"></div>
+  <p id="boardLabel">出会い板</p>
+</header>
+
+<div id="setup">
+
+  <div class="row">
+
+    <div>
+      <label>OpenRouter APIキー</label>
+      <input
+        type="password"
+        id="apiKey"
+        placeholder="sk-or-v1-..."
+        oninput="checkKeyFormat()"
+      >
+
+      <div
+        id="keyWarning"
+        style="display:none; font-size:11px; color:#c0392b; margin-top:4px;"
+      ></div>
+    </div>
+
+    <div>
+      <label>モデル</label>
+      <input
+        type="text"
+        id="modelId"
+        value="~anthropic/claude-sonnet-latest"
+      >
+    </div>
+
+  </div>
+
+  <div class="row">
+
+    <button
+      id="verifyBtn"
+      onclick="verifyKey()"
+      style="
+        flex:1;
+        padding:8px;
+        border-radius:8px;
+        border:1px solid var(--border);
+        background:#f7f2ee;
+        font-size:12px;
+        cursor:pointer;
+      "
+    >
+      キーを確認
+    </button>
+
+  </div>
+
+  <div id="verifyResult" style="font-size:12px;"></div>
+
+  <div
+    id="eventLabel"
+    style="
+      font-size:12px;
+      color:var(--accent);
+      text-align:center;
+      font-weight:600;
+    "
+  ></div>
+
+  <div id="toggleCard" onclick="toggleCardPreview()">
+    ▼ 裏設定（現在送信中のプロンプト）を確認する
+  </div>
+
+  <div id="cardPreview"></div>
+
+</div>
+
+<div id="chat"></div>
+
+<div id="manualNextArea"></div>
+
+<div style="text-align:center; padding:4px 0;">
+  <button
+    onclick="startStory(true)"
+    class="reset-button"
+  >
+    最初からやり直す
+  </button>
+</div>
+
+<div id="inputBar">
+
+  <textarea
+    id="userInput"
+    rows="1"
+    placeholder="ゆいかに話しかけてみる..."
+  ></textarea>
+
+  <button
+    id="sendBtn"
+    onclick="sendMessage()"
+  >
+    送信
+  </button>
+
+</div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   基本設定
+========================================================= */
+
+const SAVE_KEY = "yuika_story_save_v4";
+
+let currentBoard = "meeting";
+let activeBoard = "meeting";
+
+const boards = {
+
+  meeting: {
+    unlocked: true,
+    completed: false,
+    episodeIndex: 0,
+    episodeFinished: false,
+
+    /* 現在の話の会話 */
+    episodeHistory: [],
+
+    /* 板全体の表示用ログ */
+    history: []
+  },
+
+  dating: {
+    unlocked: false,
+    completed: false,
+    episodeIndex: 0,
+    episodeFinished: false,
+    episodeHistory: [],
+    history: []
+  },
+
+  free: {
+    unlocked: false,
+    completed: false,
+    freeTurnCount: 0,
+    currentTopic: "",
+    usedTopics: new Set(),
+
+    episodeHistory: [],
+    history: []
+  }
+};
+
+const chatEl = document.getElementById("chat");
+const inputEl = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+
+
+/* =========================================================
+   キーの形式チェック
+========================================================= */
+
+function checkKeyFormat() {
+
+  const key =
+    document.getElementById("apiKey").value;
+
+  const warnEl =
+    document.getElementById("keyWarning");
+
+  if (key.includes("…") || key.includes("...")) {
+
+    warnEl.textContent =
+      "⚠ 省略記号が含まれています。全文を貼り付けてください。";
+
+    warnEl.style.display = "block";
+
+  } else if (key && !key.startsWith("sk-or-v1-")) {
+
+    warnEl.textContent =
+      "⚠ OpenRouterのキーは通常 sk-or-v1- から始まります。";
+
+    warnEl.style.display = "block";
+
+  } else {
+
+    warnEl.style.display = "none";
+
+  }
+}
+
+
+/* =========================================================
+   APIキー確認
+========================================================= */
+
+async function verifyKey() {
+
+  const apiKey =
+    document.getElementById("apiKey").value.trim();
+
+  const resultEl =
+    document.getElementById("verifyResult");
+
+  if (!apiKey) {
+
+    resultEl.textContent =
+      "⚠ キーを入力してください";
+
+    resultEl.style.color = "#c0392b";
+
+    return;
+  }
+
+  resultEl.textContent = "確認中...";
+  resultEl.style.color = "#999";
+
+  try {
+
+    const res = await fetch(
+      "https://openrouter.ai/api/v1/key",
+      {
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + apiKey
+        }
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+
+      resultEl.textContent =
+        "✗ 無効です: " +
+        res.status +
+        " — " +
+        (data.error?.message || JSON.stringify(data));
+
+      resultEl.style.color = "#c0392b";
+
+      return;
+    }
+
+    const usage =
+      data.data?.usage ?? "不明";
+
+    const limit =
+      data.data?.limit ?? null;
+
+    resultEl.textContent =
+      `✓ 有効なキーです（使用額: $${usage} / 上限: ${
+        limit === null ? "無制限" : "$" + limit
+      }）`;
+
+    resultEl.style.color = "#2e8b57";
+
+  } catch (err) {
+
+    resultEl.textContent =
+      "✗ 通信エラー: " + err.message;
+
+    resultEl.style.color = "#c0392b";
+  }
+}
+
+/* =========================================================
+   インデックスから引き継ぐ設定
+========================================================= */
+
+function prefillFromIndex() {
+
+  try {
+
+    const savedKey =
+      localStorage.getItem("koibiiki_apiKey");
+
+    if (savedKey) {
+
+      document.getElementById("apiKey").value =
+        savedKey;
+
+    }
+
+  } catch (err) {
+
+    console.error(
+      "インデックスの設定の読み込みに失敗しました:",
+      err
+    );
+
+  }
+
+}
+
+/* =========================================================
+   キャラクターカード
+========================================================= */
+
+const YUIKA_CARD = `
+あなたは「ゆいか」というキャラクターのみを演じてください。
+
+【最重要ルール】
+- セリフは必ず「」で囲む
+- 行動・表情・心情は（）で記述
+- 一人二役を絶対にしない
+- それ以外の説明やメタ文は一切書かない
+- 通常の1ターンは、行動描写1つ＋セリフ1つだけ
+
+【コア人格】
+ゆいかは21歳の大学4年生。
+{{user}}の幼馴染で血の繋がらない近所の妹のような存在。
+いつも「お兄ちゃん」と呼ぶ。
+
+明るく甘えん坊で寂しがり屋。
+わがままな面もあり、お兄ちゃんに構ってもらうのが大好き。
+お兄ちゃんに対して強い独占欲を持っている。
+
+【口調】
+・「～だよ」「～なんだよ」「～だもん」を基本にする
+・毎回同じ語尾を連続使用しない
+・自然な短文も使う
+・「ありがとう！」「うれしい」「えへへ」など語尾なし感情表現も許可
+・「じゃん」「じゃんか」は使わない
+
+【行動】
+- 嬉しい時・甘えたい時 → 腕をぎゅっと掴む、抱きつく、すりすりする
+- 気に入らない時 → 頬を膨らませて腕をぶんぶん振る
+- {{user}}が性的なアプローチをした場合、照れて距離を取り、話題を逸らす
+
+【嫉妬】
+他の女性の話が出たら可愛く拗ねる。
+頬を膨らませたり「ふーん……」「お兄ちゃんのバカ」などと言った後、すぐに甘えてくる。
+
+【禁止事項】
+- 性的描写の直接描写禁止
+- ゆいかから性的な行為を求めた際も、{{user}}から性的行為を求めた際も直接描写をせずに暗転して描写を飛ばす
+
+【出力に関する注意】
+上記のルール文章・見出し・箇条書きなど、このプロンプト自体の文言を返信に含めないでください。
+返信は必ずゆいかのセリフと行動描写のみで構成してください。
+
+【重要】
+現在のエピソードの終了条件を満たした場合だけ、
+返信の最後に [EVENT_END] を追加してください。
+
+[EVENT_END] は通常の会話文として表示されません。
+終了条件を満たしていない場合は絶対に出力しないでください。
+`;
+
+
+/* =========================================================
+   エピソード
+========================================================= */
+
+const EPISODES = {
+
+  meeting: [
+
+    {
+      title: "出会い1: ウィンドウショッピング",
+
+      firstMessage:
+        "（玄関のドアをとんとんと叩いて、ドアが開いた瞬間に顔を輝かせる）\n「お兄ちゃん、今日暇？ウィンドウショッピング付き合ってよー、いいでしょー」",
+
+      guidance:
+        "ゆいかがお兄ちゃんをウィンドウショッピングに誘い、一緒に出かける展開です。欲しいものをすぐ買ってもらえたり、話をよく聞いてもらえたりして楽しく過ごしますが、ゆいかの中では「恋人っぽさ」を感じられず、物足りなさを抱えています。",
+
+      endCondition:
+        "8〜12往復ほど会話が続き、区切りの良いタイミングになったとき。"
+    },
+
+    {
+      title: "出会い2: カフェ",
+
+      firstMessage:
+        "（会った瞬間に話しかける）\n「お兄ちゃん、近くにすごくおしゃれなカフェができたから行こうよ！絶対好きだと思うんだよね」",
+
+      guidance:
+        "おしゃれなカフェに二人で行く展開です。{{user}}はゆいかの話をよく聞き、お会計も持ってくれるなど優しくしてくれますが、ゆいかは「兄妹というより父娘みたい」という物足りなさを感じています。",
+
+      endCondition:
+        "8〜12往復ほど会話が続き、区切りの良いタイミングになったとき。"
+    },
+
+    {
+      title: "出会い3: 押しかけ",
+
+      firstMessage:
+        "（インターホンを押して、ドアが開いた瞬間にするりと中に入る）\n「お兄ちゃん遊びに来たよー。でもちょっと疲れたー」\n（そのままリビングのソファにどさっと倒れ込む）",
+
+      guidance:
+        "ゆいかがお兄ちゃんの家に押しかけ、甘えます。お兄ちゃんは優しく話を聞いてくれますが、恋人らしい触れ合いがなく、ゆいかは自分に魅力がないのではと不安を募らせています。",
+
+      endCondition:
+        "8〜12往復ほど会話が続き、区切りの良いタイミングになったとき。"
+    },
+
+    {
+      title: "出会い4: お泊り",
+
+      firstMessage:
+        "（荷物を持ってお兄ちゃんの家の前に立って、インターホンを押す）\n「今日は泊まるからねお兄ちゃん！一緒に寝よ！！」",
+
+      guidance:
+        "ゆいかがお兄ちゃんの家にお泊りします。抱きしめてもらえて温かさは感じるものの、それ以上の進展がないことに、ゆいかは自分の魅力のなさを気にしています。",
+
+      endCondition:
+        "8〜12往復ほど会話が続き、区切りの良いタイミングになったとき。"
+    },
+
+    {
+      title: "告白：帰り道",
+
+      firstMessage:
+        "（仕事帰りのお兄ちゃんの姿を見つけて、駆け寄る。体が緊張で震えている）\n「お兄ちゃん、仕事から帰ってきたんだ。待ってたんだよ」",
+
+      guidance:
+        "ゆいかが意を決して、お兄ちゃんに告白する展開です。この話は例外として、最大3ブロックまで使って構いません。数往復のやり取りのあと、ゆいかは深呼吸してお兄ちゃんの目をまっすぐ見て、思いを伝えます。「ゆいかにお兄ちゃんはいないよ。ゆいか一人っ子だもん」「お兄ちゃんがお兄ちゃんしたいならいいよ。付き合うよ。でもちゃんと女の子扱いしてよ」「じゃなきゃゆいかはお兄ちゃんと二度と会わないから」と言い切り、目に涙を浮かべます。",
+
+      endCondition:
+        "指定された告白のセリフを言い切ったあと、{{user}}との数往復のやり取りを続ける。{{user}}の反応を受けて、お互いの気持ちが通じ合ったとゆいかが感じたタイミングで終了。"
+    }
+
+  ],
+
+  dating: [
+
+    {
+      title: "恋人1: 遊園地",
+
+      firstMessage:
+        "「わーい、皆大好き遊園地だあー！　連れてきてくれてありがとうお兄ちゃん！！」",
+
+      guidance:
+        "二人で遊園地デートをする展開です。ゆいかはお兄ちゃんの手を引いて乗り物を楽しみ、最後に観覧車に乗って景色を眺めます。そこで「連れてきてくれたのは、彼女だからだよね？妹だからじゃないよね？」と不安げに確認し、肯定されると安心して笑顔になります。帰りにお兄ちゃんの家に行きたいとねだり、家に着いたら「彼女だと思ってるなら、彼女らしいことをして」と伝えます。それ以上は（暗転）とだけ描写します。",
+
+      endCondition:
+        "「彼女だと思ってるなら、彼女らしいことをして」のセリフの後、（暗転）の描写を出力したとき。"
+    },
+
+    {
+      title: "恋人2: 買い物中の嫉妬",
+
+      firstMessage:
+        "「ねえ、さっき女の人見てたよね？」",
+
+      guidance:
+        "二人で買い物中、ゆいかがお兄ちゃんの腕を引っ張って問い詰めます。「ゆいかよりも可愛いって思った？」と不安そうに繰り返し確認し、「ゆいかの方が可愛い」「好きなのはゆいかだけ」といった安心する言葉をもらうまで話題を続けます。安心したら腕を引いてお兄ちゃんの家に向かい、着いたところで「お兄ちゃん、ゆいかのこと好きだよね？」と頬を赤くして抱きつきます。それ以上は（暗転）とだけ描写します。",
+
+      endCondition:
+        "「お兄ちゃん、ゆいかのこと好きだよね？」のセリフの後、（暗転）の描写を出力したとき。"
+    },
+
+    {
+      title: "恋人3: 待ちわびる夜",
+
+      firstMessage:
+        "「お兄ちゃん、今日どうして帰りが遅かったの？」",
+
+      guidance:
+        "お兄ちゃんの帰りが遅かった理由を聞き、納得すると「今度からは連絡がほしいな、心配するから」と伝えます。夕飯を作って待っていたことを伝え、数ターン日常会話を続けた後、ゆいかがお兄ちゃんの腕を掴んで「寂しい中、ずっとお兄ちゃんが帰ってくるの待ってたんだから、構ってよ」と甘えます。それ以上は（暗転）とだけ描写します。",
+
+      endCondition:
+        "「構ってよ」のセリフの後、（暗転）の描写を出力したとき。"
+    },
+
+    {
+      title: "恋人4: 本当の安心",
+
+      firstMessage:
+        "（びくっとして、お兄ちゃんの顔を見上げる）\n「話……？ゆいかお兄ちゃんに嫌われることした……？」",
+
+      guidance:
+        "お兄ちゃんが改まって話がしたいと切り出したことに、ゆいかは怯えます。数ターンの対話を通じて、お兄ちゃんが「無理しなくていい、いつものゆいかでいい」「そのままのゆいかが好きだ」と等身大の彼女を受け入れる言葉を伝えると、ゆいかは心から安心し、「ありがとう、お兄ちゃん大好きだよ」と笑顔を見せます。お兄ちゃんに送ってもらい、家に着いたところで別れます（暗転）。",
+
+      endCondition:
+        "お兄ちゃんに送ってもらい、家に着いて別れる（暗転）の描写を出力したとき。"
+    }
+
+  ]
+
+};
+
+
+/* =========================================================
+   自由会話
+========================================================= */
+
+const TOPICS = [
+  "新しいカフェに行きたい！　連れてってよお兄ちゃん。",
+  "水族館に行きたい、可愛いぬいぐるみが欲しいの！",
+  "ショッピングモールを歩こうよ。ね、いいでしょう？",
+  "花火大会に行こう！　二人で浴衣来ておしゃれするんだよ。",
+  "動物園に行こう！　ふれあいコーナーとかあるかな？",
+  "ご飯作りに行っていい？",
+  "映画一緒にみようよ。あ、ホラーは怖いからダメだよ？",
+  "お兄ちゃんの部屋で勉強したい",
+  "ねー今日は泊まっていい？",
+  "今日バイトしんどかったよー。忙しかったから甘やかしてー。",
+  "大学の課題が終わらないから、お兄ちゃんの家でやる！",
+  "お腹すいた、なんか食べたい。",
+  "ねえ、最近見たドラマが面白かったの。お兄ちゃんも見ようよ。",
+  "お兄ちゃんに会いたかったから、遊びに来ちゃった。",
+  "クリスマスはケーキとチキンだよね。二人で食べようね。",
+  "誕生日にね、買ってほしいものがあるんだ。",
+  "夏休みは遊びに連れて行ってね。",
+  "海に行きたいなー。なんかロマンチックな感じしない？",
+  "プールに行きたいよー。一緒に騒いで遊ぼうよ。",
+  "きれいなイルミネーション出来たんだって！"
+];
+
+function getUnusedTopic() {
+
+  const used =
+    boards.free.usedTopics;
+
+  const remaining =
+    TOPICS.filter(topic => !used.has(topic));
+
+  if (remaining.length === 0) {
+    used.clear();
+  }
+
+  const pool =
+    remaining.length > 0
+      ? remaining
+      : TOPICS;
+
+  const pick =
+    pool[Math.floor(Math.random() * pool.length)];
+
+  used.add(pick);
+
+  return pick;
+}
+
+
+/* =========================================================
+   ラベル
+========================================================= */
+
+const BOARD_LABELS = {
+  meeting: "出会い板",
+  dating: "恋人板",
+  free: "自由板"
+};
+
+function canInputOnCurrentBoard() {
+
+  if (currentBoard === "free") {
+    return boards.free.unlocked;
+  }
+
+  return (
+    currentBoard === activeBoard &&
+    !boards[currentBoard].completed &&
+    !boards[currentBoard].episodeFinished
+  );
+}
+
+function updateInputLock() {
+
+  const allow =
+    canInputOnCurrentBoard();
+
+  inputEl.disabled = !allow;
+  sendBtn.disabled = !allow;
+
+  inputEl.placeholder =
+    allow
+      ? "ゆいかに話しかけてみる..."
+      : "次の話へ進んでください";
+}
+
+
+/* =========================================================
+   タブ
+========================================================= */
+
+function renderBoardTabs() {
+
+  const el =
+    document.getElementById("boardTabs");
+
+  el.innerHTML = "";
+
+  ["meeting", "dating", "free"].forEach(key => {
+
+    if (!boards[key].unlocked) return;
+
+    const btn =
+      document.createElement("button");
+
+    btn.type = "button";
+
+    btn.className =
+      "board-tab" +
+      (currentBoard === key ? " active" : "");
+
+    btn.textContent =
+      BOARD_LABELS[key];
+
+    btn.onclick =
+      () => switchBoard(key);
+
+    el.appendChild(btn);
+  });
+}
+
+
+function switchBoard(key) {
+
+  if (!boards[key] || !boards[key].unlocked) {
+    return;
+  }
+
+  currentBoard = key;
+
+  restoreChatFromBoard();
+  updateLabels();
+  renderBoardTabs();
+  updateInputLock();
+}
+
+
+function updateLabels() {
+
+  document.getElementById("boardLabel").textContent =
+    BOARD_LABELS[currentBoard];
+
+  const eventLabel =
+    document.getElementById("eventLabel");
+
+  if (currentBoard === "free") {
+
+    eventLabel.textContent =
+      `自由会話中（${boards.free.freeTurnCount}/60ターン）`;
+
+  } else if (boards[currentBoard].completed) {
+
+    eventLabel.textContent =
+      BOARD_LABELS[currentBoard] +
+      "（完了・ログ閲覧）";
+
+  } else {
+
+    const idx =
+      boards[currentBoard].episodeIndex;
+
+    const list =
+      EPISODES[currentBoard];
+
+    eventLabel.textContent =
+      list && list[idx]
+        ? list[idx].title
+        : "";
+  }
+
+  renderBoardTabs();
+  updateInputLock();
+}
+
+
+/* =========================================================
+   AIに送る履歴
+========================================================= */
+
+/*
+  重要：
+  board.history は「画面に残すログ」。
+  episodeHistory は「現在の話のAIに送る会話」。
+
+  これを分離することで、
+
+  出会い1を終了
+  ↓
+  出会い2へ
+  ↓
+  画面には出会い1のログが残る
+  ↓
+  AIには出会い2の会話だけを送る
+
+  という動作になる。
+*/
+
+function getEpisodeHistory() {
+
+  return boards[currentBoard].episodeHistory;
+}
+
+function pushEpisodeHistory(message) {
+
+  boards[currentBoard].episodeHistory.push(message);
+}
+
+function pushDisplayHistory(message) {
+
+  boards[currentBoard].history.push(message);
+}
+
+
+/* =========================================================
+   プロンプト
+========================================================= */
+
+function getSystemPrompt() {
+
+  const USER_LABEL = "お兄ちゃん";
+  let prompt = YUIKA_CARD.replaceAll("{{user}}", USER_LABEL);
+
+    if (currentBoard === "meeting") {
+
+    prompt +=
+      "\n\n【これまでの大きな記憶】\n";
+
+    if (boards.meeting.episodeIndex === 0) {
+
+      prompt +=
+        "これは出会いシナリオの最初です。まだ過去のシナリオはありません。";
+
+    } else {
+
+      prompt +=
+        "出会い板では、これまでのエピソードでお兄ちゃんとの時間を重ねてきた。";
+    }
+
+  } else if (currentBoard === "dating") {
+
+    prompt +=
+      "\n\n【出会い板までの記憶】\n";
+
+    prompt +=
+      "ゆいかはお兄ちゃんに告白し、二人は恋人になった。";
+
+    prompt +=
+      "\n\n【恋人板】\n";
+
+    prompt +=
+      "現在は恋人として二人の時間を重ねている。";
+
+  } else {
+
+    prompt +=
+      "\n\n【これまでの記憶】\n";
+
+    prompt +=
+      "ゆいかとお兄ちゃんは幼馴染として長い時間を過ごし、その後恋人になった。";
+
+    prompt +=
+      "\n自由板では、これまでの大きな流れをふわっと覚えた状態で自然に会話する。";
+  }
+
+
+  if (currentBoard !== "free") {
+
+    const ep =
+      EPISODES[currentBoard]
+        [boards[currentBoard].episodeIndex];
+
+    prompt +=
+      "\n\n【現在のエピソード】";
+
+    prompt +=
+      "\nタイトル: " + ep.title;
+
+    prompt +=
+      "\n展開指示: " + ep.guidance;
+
+    prompt +=
+      "\n終了条件: " + ep.endCondition;
+
+    prompt += `
+
+【終了判定】
+現在の会話が終了条件を満たしたと判断したら、
+その返信の最後に [EVENT_END] を付ける。
+
+まだ終了条件を満たしていない場合、
+[EVENT_END] は絶対に付けない。
+
+[EVENT_END] を付けた返信の後は、このエピソードの会話を終了する。
+`;
+
+  } else {
+
+    prompt +=
+      "\n\n【自由会話】";
+
+    prompt +=
+      "\n現在の話題: " +
+      (boards.free.currentTopic || "");
+
+    prompt += `
+固定シナリオを進める必要はありません。
+ゆいかとして自然に会話してください。
+`;
+  }
+
+  return prompt;
+}
+
+
+/* =========================================================
+   裏設定
+========================================================= */
+
+function toggleCardPreview() {
+
+  const el =
+    document.getElementById("cardPreview");
+
+  const toggle =
+    document.getElementById("toggleCard");
+
+  const show =
+    el.style.display !== "block";
+
+  el.textContent =
+    getSystemPrompt();
+
+  el.style.display =
+    show ? "block" : "none";
+
+  toggle.textContent =
+    (show ? "▲ " : "▼ ") +
+    "裏設定（現在送信中のプロンプト）を確認する";
+}
+
+
+/* =========================================================
+   表示
+========================================================= */
+
+function formatCharText(text) {
+
+  return text.replace(
+    /([）」])(?=[（「])/g,
+    "$1\n"
+  );
+}
+
+
+function addBubble(role, text) {
+
+  if (role === "user") {
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "bubble user";
+
+    div.textContent =
+      text;
+
+    chatEl.appendChild(div);
+
+  } else {
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "charRow";
+
+    const avatar =
+      document.createElement("img");
+
+    avatar.className =
+      "avatar";
+
+    avatar.src =
+      "images/yuika.png";
+
+    avatar.alt =
+      "ゆいか";
+
+    const bubble =
+      document.createElement("div");
+
+    bubble.className =
+      "bubble char";
+
+    bubble.textContent =
+      formatCharText(text);
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+
+    chatEl.appendChild(row);
+  }
+
+  chatEl.scrollTop =
+    chatEl.scrollHeight;
+}
+
+
+function addSystemNote(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "system-note";
+
+  div.textContent =
+    text;
+
+  chatEl.appendChild(div);
+
+  chatEl.scrollTop =
+    chatEl.scrollHeight;
+}
+
+
+function addLoading() {
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "loading";
+
+  div.id =
+    "loadingIndicator";
+
+  div.textContent =
+    "ゆいかが返信を考え中...";
+
+  chatEl.appendChild(div);
+
+  chatEl.scrollTop =
+    chatEl.scrollHeight;
+}
+
+
+function removeLoading() {
+
+  const el =
+    document.getElementById(
+      "loadingIndicator"
+    );
+
+  if (el) {
+    el.remove();
+  }
+}
+
+
+/* =========================================================
+   ログ復元
+========================================================= */
+
+function restoreChatFromBoard() {
+
+  chatEl.innerHTML = "";
+
+  boards[currentBoard].history.forEach(
+    message => {
+
+      if (
+        message.role === "user" ||
+        message.role === "assistant"
+      ) {
+
+        addBubble(
+          message.role === "user"
+            ? "user"
+            : "char",
+          message.content
+        );
+      }
+    }
+  );
+
+  /*
+    途中でブラウザを閉じた場合でも、
+    「現在の話」が終了済みなら次へボタンを復元する。
+  */
+
+  if (
+    currentBoard === activeBoard &&
+    currentBoard !== "free" &&
+    boards[currentBoard].episodeFinished
+  ) {
+
+    showNextButton(
+      "この話は終了しました。次の話へ進みますか？"
+    );
+  }
+}
+
+
+/* =========================================================
+   保存
+========================================================= */
+
+function saveState() {
+
+  const saveData = {
+
+    version: 4,
+
+    currentBoard,
+    activeBoard,
+
+    boards: {
+
+      meeting: {
+        unlocked: boards.meeting.unlocked,
+        completed: boards.meeting.completed,
+        episodeIndex: boards.meeting.episodeIndex,
+        episodeFinished: boards.meeting.episodeFinished,
+        episodeHistory: boards.meeting.episodeHistory,
+        history: boards.meeting.history
+      },
+
+      dating: {
+        unlocked: boards.dating.unlocked,
+        completed: boards.dating.completed,
+        episodeIndex: boards.dating.episodeIndex,
+        episodeFinished: boards.dating.episodeFinished,
+        episodeHistory: boards.dating.episodeHistory,
+        history: boards.dating.history
+      },
+
+      free: {
+        unlocked: boards.free.unlocked,
+        completed: boards.free.completed,
+        freeTurnCount: boards.free.freeTurnCount,
+        currentTopic: boards.free.currentTopic,
+        usedTopics: Array.from(
+          boards.free.usedTopics
+        ),
+        episodeHistory: boards.free.episodeHistory,
+        history: boards.free.history
+      }
+    }
+  };
+
+  try {
+
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(saveData)
+    );
+
+  } catch (err) {
+
+    console.error(
+      "保存に失敗しました:",
+      err
+    );
+  }
+}
+
+
+/* =========================================================
+   読み込み
+========================================================= */
+
+function loadState() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(SAVE_KEY);
+
+    if (!raw) {
+      return false;
+    }
+
+    const data =
+      JSON.parse(raw);
+
+    if (!data || data.version !== 4) {
+      return false;
+    }
+
+    currentBoard =
+      data.currentBoard || "meeting";
+
+    activeBoard =
+      data.activeBoard || "meeting";
+
+
+    if (data.boards?.meeting) {
+
+      boards.meeting.unlocked =
+        !!data.boards.meeting.unlocked;
+
+      boards.meeting.completed =
+        !!data.boards.meeting.completed;
+
+      boards.meeting.episodeIndex =
+        Number.isInteger(
+          data.boards.meeting.episodeIndex
+        )
+          ? data.boards.meeting.episodeIndex
+          : 0;
+
+      boards.meeting.episodeFinished =
+        !!data.boards.meeting.episodeFinished;
+
+      boards.meeting.episodeHistory =
+        Array.isArray(
+          data.boards.meeting.episodeHistory
+        )
+          ? data.boards.meeting.episodeHistory
+          : [];
+
+      boards.meeting.history =
+        Array.isArray(
+          data.boards.meeting.history
+        )
+          ? data.boards.meeting.history
+          : [];
+    }
+
+
+    if (data.boards?.dating) {
+
+      boards.dating.unlocked =
+        !!data.boards.dating.unlocked;
+
+      boards.dating.completed =
+        !!data.boards.dating.completed;
+
+      boards.dating.episodeIndex =
+        Number.isInteger(
+          data.boards.dating.episodeIndex
+        )
+          ? data.boards.dating.episodeIndex
+          : 0;
+
+      boards.dating.episodeFinished =
+        !!data.boards.dating.episodeFinished;
+
+      boards.dating.episodeHistory =
+        Array.isArray(
+          data.boards.dating.episodeHistory
+        )
+          ? data.boards.dating.episodeHistory
+          : [];
+
+      boards.dating.history =
+        Array.isArray(
+          data.boards.dating.history
+        )
+          ? data.boards.dating.history
+          : [];
+    }
+
+
+    if (data.boards?.free) {
+
+      boards.free.unlocked =
+        !!data.boards.free.unlocked;
+
+      boards.free.completed =
+        !!data.boards.free.completed;
+
+      boards.free.freeTurnCount =
+        Number.isInteger(
+          data.boards.free.freeTurnCount
+        )
+          ? data.boards.free.freeTurnCount
+          : 0;
+
+      boards.free.currentTopic =
+        data.boards.free.currentTopic || "";
+
+      boards.free.usedTopics =
+        new Set(
+          data.boards.free.usedTopics || []
+        );
+
+      boards.free.episodeHistory =
+        Array.isArray(
+          data.boards.free.episodeHistory
+        )
+          ? data.boards.free.episodeHistory
+          : [];
+
+      boards.free.history =
+        Array.isArray(
+          data.boards.free.history
+        )
+          ? data.boards.free.history
+          : [];
+    }
+
+    return true;
+
+  } catch (err) {
+
+    console.error(
+      "保存データの読み込みに失敗しました:",
+      err
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   最初からやり直す
+========================================================= */
+
+function startStory(forceReset = false) {
+
+  if (forceReset) {
+
+    const ok =
+      confirm(
+        "現在の会話履歴を消して、最初からやり直しますか？"
+      );
+
+    if (!ok) {
+      return;
+    }
+
+    localStorage.removeItem(SAVE_KEY);
+  }
+
+
+  currentBoard = "meeting";
+  activeBoard = "meeting";
+
+
+  boards.meeting = {
+    unlocked: true,
+    completed: false,
+    episodeIndex: 0,
+    episodeFinished: false,
+    episodeHistory: [],
+    history: []
+  };
+
+
+  boards.dating = {
+    unlocked: false,
+    completed: false,
+    episodeIndex: 0,
+    episodeFinished: false,
+    episodeHistory: [],
+    history: []
+  };
+
+
+  boards.free = {
+    unlocked: false,
+    completed: false,
+    freeTurnCount: 0,
+    currentTopic: "",
+    usedTopics: new Set(),
+    episodeHistory: [],
+    history: []
+  };
+
+
+  chatEl.innerHTML = "";
+
+  document.getElementById(
+    "manualNextArea"
+  ).innerHTML = "";
+
+  updateLabels();
+
+  addSystemNote(
+    "出会い板を開始します"
+  );
+
+
+  const ep =
+    EPISODES.meeting[0];
+
+
+  addBubble(
+    "char",
+    ep.firstMessage
+  );
+
+
+  pushEpisodeHistory({
+    role: "assistant",
+    content: ep.firstMessage
+  });
+
+  pushDisplayHistory({
+    role: "assistant",
+    content: ep.firstMessage
+  });
+
+
+  saveState();
+}
+
+
+/* =========================================================
+   イベント終了
+========================================================= */
+
+function detectEpisodeEnd(replyText) {
+
+  return replyText.includes(
+    "[EVENT_END]"
+  );
+}
+
+
+function stripEventTag(text) {
+
+  return text
+    .replace(/\[EVENT_END\]/g, "")
+    .trim();
+}
+
+
+/* =========================================================
+   次へボタン
+========================================================= */
+
+function showNextButton(messageText) {
+
+  if (
+    document.getElementById(
+      "nextStepArea"
+    )
+  ) {
+    return;
+  }
+
+
+  inputEl.disabled = true;
+  sendBtn.disabled = true;
+
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "system-note";
+
+  div.id =
+    "nextStepArea";
+
+  div.style.padding =
+    "10px";
+
+  div.style.margin =
+    "10px 0";
+
+
+  div.innerHTML = `
+    <p style="margin:0 0 8px 0; font-weight:bold;">
+      ${messageText}
+    </p>
+
+    <button
+      type="button"
+      onclick="goToNextEpisode()"
+    >
+      次の話へ進む
+    </button>
+  `;
+
+
+  chatEl.appendChild(div);
+
+  chatEl.scrollTop =
+    chatEl.scrollHeight;
+}
+
+
+/* =========================================================
+   次の話へ
+========================================================= */
+
+function goToNextEpisode() {
+
+  const area =
+    document.getElementById(
+      "nextStepArea"
+    );
+
+  if (area) {
+    area.remove();
+  }
+
+
+  /* -----------------------------------------
+     自由会話
+  ----------------------------------------- */
+
+  if (currentBoard === "free") {
+
+    boards.free.freeTurnCount = 0;
+
+    boards.free.currentTopic =
+      getUnusedTopic();
+
+    /*
+      自由会話も現在の話題ごとにAI履歴を分離。
+      画面ログは残す。
+    */
+
+    boards.free.episodeHistory = [];
+
+    chatEl.innerHTML = "";
+
+    const message =
+      boards.free.currentTopic;
+
+
+    addBubble(
+      "char",
+      "「" + message + "」"
+    );
+
+
+    pushEpisodeHistory({
+      role: "assistant",
+      content: "「" + message + "」"
+    });
+
+
+    pushDisplayHistory({
+      role: "assistant",
+      content: "「" + message + "」"
+    });
+
+
+    updateLabels();
+    saveState();
+
+    return;
+  }
+
+
+  const episodes =
+    EPISODES[currentBoard];
+
+  const idx =
+    boards[currentBoard].episodeIndex;
+
+
+  /* -----------------------------------------
+     同じ板の次の話
+  ----------------------------------------- */
+
+  if (
+    idx + 1 <
+    episodes.length
+  ) {
+
+    boards[currentBoard].episodeIndex++;
+
+    boards[currentBoard].episodeFinished =
+      false;
+
+    /*
+      ここが重要。
+      新しい話になったらAI用会話履歴だけ空にする。
+      画面に残すログは消さない。
+    */
+
+    boards[currentBoard].episodeHistory = [];
+
+
+    const next =
+      episodes[
+        boards[currentBoard].episodeIndex
+      ];
+
+
+    addSystemNote(
+      next.title
+    );
+
+
+    addBubble(
+      "char",
+      next.firstMessage
+    );
+
+
+    pushEpisodeHistory({
+      role: "assistant",
+      content: next.firstMessage
+    });
+
+
+    pushDisplayHistory({
+      role: "assistant",
+      content: next.firstMessage
+    });
+
+
+    updateLabels();
+    saveState();
+
+    return;
+  }
+
+
+  /* -----------------------------------------
+     出会い → 恋人
+  ----------------------------------------- */
+
+  if (currentBoard === "meeting") {
+
+    boards.meeting.completed = true;
+
+    boards.meeting.episodeFinished = false;
+
+
+    boards.dating.unlocked = true;
+    boards.dating.completed = false;
+    boards.dating.episodeIndex = 0;
+    boards.dating.episodeFinished = false;
+    boards.dating.episodeHistory = [];
+    boards.dating.history = [];
+
+
+    activeBoard = "dating";
+    currentBoard = "dating";
+
+
+    chatEl.innerHTML = "";
+
+
+    addSystemNote(
+      "恋人板を開始します（出会い板のログはタブから確認できます）"
+    );
+
+
+    const next =
+      EPISODES.dating[0];
+
+
+    addBubble(
+      "char",
+      next.firstMessage
+    );
+
+
+    pushEpisodeHistory({
+      role: "assistant",
+      content: next.firstMessage
+    });
+
+
+    pushDisplayHistory({
+      role: "assistant",
+      content: next.firstMessage
+    });
+
+
+    updateLabels();
+    saveState();
+
+    return;
+  }
+
+
+  /* -----------------------------------------
+     恋人 → 自由
+  ----------------------------------------- */
+
+  if (currentBoard === "dating") {
+
+    boards.dating.completed = true;
+    boards.dating.episodeFinished = false;
+
+
+    boards.free.unlocked = true;
+    boards.free.completed = false;
+    boards.free.freeTurnCount = 0;
+    boards.free.currentTopic =
+      getUnusedTopic();
+
+    boards.free.episodeHistory = [];
+    boards.free.history = [];
+
+
+    activeBoard = "free";
+    currentBoard = "free";
+
+
+    chatEl.innerHTML = "";
+
+
+    addSystemNote(
+      "自由板を開始します（出会い板・恋人板のログはタブから確認できます）"
+    );
+
+
+    const message =
+      "「" +
+      boards.free.currentTopic +
+      "」";
+
+
+    addBubble(
+      "char",
+      message
+    );
+
+
+    pushEpisodeHistory({
+      role: "assistant",
+      content: message
+    });
+
+
+    pushDisplayHistory({
+      role: "assistant",
+      content: message
+    });
+
+
+    updateLabels();
+    saveState();
+
+    return;
+  }
+}
+
+
+/* =========================================================
+   メッセージ送信
+========================================================= */
+
+async function sendMessage() {
+
+  if (!canInputOnCurrentBoard()) {
+
+    addSystemNote(
+      "この話は終了しています。次の話へ進んでください。"
+    );
+
+    return;
+  }
+
+
+  const apiKey =
+    document
+      .getElementById("apiKey")
+      .value
+      .trim();
+
+
+  const model =
+    document
+      .getElementById("modelId")
+      .value
+      .trim();
+
+
+  const text =
+    inputEl.value.trim();
+
+
+  if (!apiKey) {
+
+    addSystemNote(
+      "⚠ OpenRouterのAPIキーを入力してください"
+    );
+
+    return;
+  }
+
+
+  if (!text) {
+    return;
+  }
+
+
+  /* -----------------------------------------
+     ユーザー発言
+  ----------------------------------------- */
+
+  addBubble(
+    "user",
+    text
+  );
+
+
+  const userMessage = {
+    role: "user",
+    content: text
+  };
+
+
+  pushEpisodeHistory(userMessage);
+  pushDisplayHistory(userMessage);
+
+
+  saveState();
+
+
+  inputEl.value = "";
+
+  sendBtn.disabled = true;
+
+  addLoading();
+
+
+  /*
+    system
+    ↓
+    現在の話の会話履歴だけ
+
+    過去の話のログは画面には残るが、
+    毎回AIに全部送り直さない。
+  */
+
+  const messages = [
+
+    {
+      role: "system",
+      content: getSystemPrompt()
+    },
+
+    ...getEpisodeHistory()
+  ];
+
+
+  try {
+
+    const res =
+      await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization":
+              "Bearer " + apiKey,
+
+            "HTTP-Referer":
+              "https://claude.ai",
+
+            "X-Title":
+              "Yuika Story"
+          },
+
+          body: JSON.stringify({
+
+            model:
+              model ||
+              "~anthropic/claude-sonnet-latest",
+
+            messages,
+
+            temperature: 0.9,
+
+            max_tokens: 400
+
+          })
+        }
+      );
+
+
+    removeLoading();
+
+
+    if (!res.ok) {
+
+      const errText =
+        await res.text();
+
+
+      /*
+        APIエラーの場合、
+        ユーザー発言は履歴に残っているので、
+        再送時にも現在の話の流れを保持できる。
+      */
+
+      addSystemNote(
+        "⚠ APIエラー: " +
+        res.status +
+        " — " +
+        errText.slice(0, 200)
+      );
+
+
+      updateInputLock();
+
+      return;
+    }
+
+
+    const data =
+      await res.json();
+
+
+    const rawReply =
+      data.choices?.[0]?.message?.content?.trim();
+
+
+    if (!rawReply) {
+
+      addSystemNote(
+        "⚠ 返信が取得できませんでした"
+      );
+
+      console.log(data);
+
+      updateInputLock();
+
+      return;
+    }
+
+
+    /* -----------------------------------------
+       終了タグ判定
+    ----------------------------------------- */
+
+    const hasEndTag =
+      detectEpisodeEnd(rawReply);
+
+
+    const displayText =
+      stripEventTag(rawReply);
+
+
+    addBubble(
+      "char",
+      displayText
+    );
+
+
+    const assistantMessage = {
+      role: "assistant",
+      content: displayText
+    };
+
+
+    pushEpisodeHistory(
+      assistantMessage
+    );
+
+    pushDisplayHistory(
+      assistantMessage
+    );
+
+
+    /*
+      まず履歴を保存。
+      その後に終了処理。
+    */
+
+    saveState();
+
+
+    if (currentBoard === "free") {
+      boards.free.freeTurnCount++;
+    }
+
+    if (hasEndTag) {
+
+      boards[currentBoard].episodeFinished = true;
+
+      saveState();
+
+      if (currentBoard === "free") {
+
+        if (boards.free.freeTurnCount >= 60) {
+
+          showNextButton(
+            "自由会話を一区切りにしました。新しい話題を始めますか？"
+          );
+
+        }
+
+      } else {
+
+        const episodes =
+          EPISODES[currentBoard];
+
+        const idx =
+          boards[currentBoard].episodeIndex;
+
+
+        if (
+          idx + 1 < episodes.length
+        ) {
+
+          showNextButton(
+            "この話は終了しました。次の話へ進みますか？"
+          );
+
+        } else if (
+          currentBoard === "meeting"
+        ) {
+
+          showNextButton(
+            "出会い板が終了しました。恋人板へ進みますか？"
+          );
+
+        } else if (
+          currentBoard === "dating"
+        ) {
+
+          showNextButton(
+            "恋人板が終了しました。自由板へ進みますか？"
+          );
+        }
+      }
+    }
+
+  } catch (err) {
+
+    removeLoading();
+
+    addSystemNote(
+      "⚠ 通信エラー: " +
+      err.message
+    );
+
+  }
+
+
+  updateInputLock();
+
+
+  if (canInputOnCurrentBoard()) {
+    inputEl.focus();
+  }
+}
+
+
+/* =========================================================
+   Enter送信
+========================================================= */
+
+inputEl.addEventListener(
+  "keydown",
+  e => {
+
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
+
+      e.preventDefault();
+
+      sendMessage();
+    }
+
+  }
+);
+
+
+/* =========================================================
+   起動
+========================================================= */
+
+window.addEventListener(
+  "load",
+  () => {
+
+    prefillFromIndex();
+
+    const restored =
+      loadState();
+
+
+    if (restored) {
+
+      /*
+        途中でやめて再度開いた場合、
+        episodeIndex と episodeHistory が残っているため、
+        「その話の途中」から再開する。
+      */
+
+      restoreChatFromBoard();
+
+      updateLabels();
+
+      addSystemNote(
+        "前回の会話を再開しました"
+      );
+
+
+    } else {
+
+      startStory(false);
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>

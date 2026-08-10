@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <style>
+    body {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+#chat-log {
+  height: 400px;
+  overflow-y: auto;
+  text-align: left;
+  padding: 10px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  margin: 6px 0;
+  border-radius: 16px;
+  line-height: 1.4;
+  clear: both;
+}
+
+.bubble-user {
+  background: #b3e5fc;
+  float: right;
+}
+
+.bubble-char {
+  background: #f0f0f0;
+  float: left;
+}
+
+  </style>
+  <meta charset="UTF-8">
+  <title>恋結び</title>
+</head>
+<body>
+
+  <div id="screen-title">
+    <h1>恋結び</h1>
+    <p>あなたとの会話で少しずつ素顔を見せる女の子</p>
+    <button onclick="showHowTo()">あそびかたを見る</button>
+    <button onclick="startApp()">はじめる</button>
+  </div>
+
+
+  <div id="screen-howto" style="display:none; text-align:left;">
+    <h2>遊び方（OpenRouterのAPIキーの取得方法）</h2>
+    <p>このアプリを利用するには、OpenRouterのAPIキーが必要です。</p>
+    <p>まず、OpenRouterの公式サイトにアクセスしてください。<br>
+    「Sign In」からアカウントを作成、またはログインします。<br>
+    ログイン後、API Keysのページを開き、「Create Key」から新しいAPIキーを作成します。<br>
+    作成したAPIキーをコピーして、アプリのAPIキー入力欄に貼り付けてください。</p>
+    <p>APIキーは第三者に知られないよう、大切に管理してください。<br>
+    クレジットは最初は少額（5ドルぐらい）からお試しください。</p>
+    <p>OpenRouter公式サイト：<br>
+    <a href="https://openrouter.ai/?utm_source=chatgpt.com" target="_blank" rel="noopener">OpenRouter</a></p>
+    <p>API Keys：<br>
+    <a href="https://openrouter.ai/settings/keys?utm_source=chatgpt.com" target="_blank" rel="noopener">OpenRouter API Keys</a></p>
+    <p>※「Create Key」を押した後にエラーが出たり、いきなり「…」で隠れた詳細ページに飛ばされてしまう場合は、シークレットウィンドウ（プライベートブラウズ）で作り直してみてください。拡張機能が原因で正常にキーが表示されないことがあります。</p>
+    <button onclick="backToTitle()">戻る</button>
+  </div>
+
+  <div id="screen-name" style="display:none">
+
+  <h2>あなたの呼ばれたい名前を教えてください</h2>
+  <input type="text" id="name-input">
+
+  <h2>OpenRouterのAPIキーを入力してください</h2>
+  <input type="text" id="apikey-input" placeholder="sk-or-...">
+
+  <button onclick="saveName()">決定</button>
+</div>
+
+  <div id="screen-select" style="display:none">
+  <h2>お相手を選んでください</h2>
+
+  <button onclick="selectCharacter('ゆいか')">ゆいか</button>
+  <button onclick="selectCharacter('紬')">紬</button>
+  <button onclick="selectCharacter('緑')">緑</button>
+  <button onclick="selectCharacter('しずく')">しずく</button>
+  <button onclick="selectCharacter('こはる')">こはる</button>
+  </div> 
+
+<div id="screen-profile" style="display:none">
+  <img id="profile-img" src="" alt="" style="width:200px; border-radius:10px;">
+  <h2 id="profile-name"></h2>
+  <p id="profile-desc"></p>
+  <h3>お話しますか？</h3>
+  <button onclick="goToChat()">はい</button>
+  <button onclick="backToSelect()">いいえ</button>
+</div>
+
+<div id="screen-chat" style="display:none">
+  <h3 id="chat-partner-name"></h3>
+
+  <div id="chat-log"></div>
+
+  <input type="text" id="chat-input" placeholder="メッセージを入力">
+  <button onclick="sendMessage()">送信</button>
+</div>
+
+ <script>
+function showHowTo() {
+  document.getElementById("screen-title").style.display = "none";
+  document.getElementById("screen-howto").style.display = "block";
+}
+
+function backToTitle() {
+  document.getElementById("screen-howto").style.display = "none";
+  document.getElementById("screen-title").style.display = "block";
+}
+function startApp() {
+  document.getElementById("screen-title").style.display = "none";
+  document.getElementById("screen-name").style.display = "block";
+}
+
+let userName = "あなた";
+let currentCharacter = "";
+
+let apiKey = "";
+
+function saveName() {
+  const input = document.getElementById("name-input").value;
+  if (input.trim() !== "") {
+    userName = input;
+  }
+  apiKey = document.getElementById("apikey-input").value;
+
+  try {
+    localStorage.setItem("koibiiki_userName", userName);
+    localStorage.setItem("koibiiki_apiKey", apiKey);
+  } catch (err) {}
+
+  document.getElementById("screen-name").style.display = "none";
+  document.getElementById("screen-select").style.display = "block";
+}
+
+function selectCharacter(name) {
+  document.getElementById("profile-name").textContent = name;
+  document.getElementById("profile-desc").textContent = characters[name].desc;
+  document.getElementById("profile-img").src = characters[name].img;
+
+  document.getElementById("screen-select").style.display = "none";
+  document.getElementById("screen-profile").style.display = "block";
+}
+
+function goToChat() {
+  currentCharacter = document.getElementById("profile-name").textContent;
+  const file = characters[currentCharacter].file;
+
+  window.location.href = file;
+}
+
+function addBubble(text, sender) {
+  const log = document.getElementById("chat-log");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble " + (sender === "user" ? "bubble-user" : "bubble-char");
+  bubble.textContent = text;
+  log.appendChild(bubble);
+  log.scrollTop = log.scrollHeight;
+}
+
+function sendMessage() {
+  const inputBox = document.getElementById("chat-input");
+  const text = inputBox.value;
+  if (text.trim() === "") return;
+
+  addBubble(text, "user");
+  inputBox.value = "";
+
+  setTimeout(function() {
+    addBubble(currentCharacter + "「（ここに本当はAIの返事が入ります）」", "char");
+  }, 500);
+}
+
+function backToSelect() {
+  document.getElementById("screen-profile").style.display = "none";
+  document.getElementById("screen-select").style.display = "block";
+}
+
+const characters = {
+   'ゆいか': { desc: '21歳、大学生。元気でわがままな甘え上手。ユーザーをお兄ちゃんと呼ぶ年下の幼馴染。', img: 'images/yuika.png', file: 'yuika.html' },
+  '紬': { desc: '27歳、メイド。雇い主の息子であるユーザーに冷たい合理主義者。次第に心を開く。', img: 'images/tsumugi.png', file: 'tsumugi.html' },
+  '緑': { desc: '20歳、大学生。実家の神社で巫女をする内気な少女。接客慣れしているが素の自分は出せない。ユーザーと同じ大学。', img: 'images/midori.png', file: 'midori.html' },
+  'しずく': { desc: '28歳、OL。有能だがプライベートでは天然なユーザーの同期。包容力にあふれるお姉さん。', img: 'images/shizuku.png', file: 'shizuku.html' },
+  'こはる': { desc: '18歳、大学生。北海道の農家出身。生まれ育った田舎が大好きな素朴で癒し系。ユーザーとは同級生。', img: 'images/koharu.png', file: 'koharu.html' }
+};
+  </script>
+
+</body>
+</html>
